@@ -30,3 +30,15 @@ jobs:
           docker push vijay24794/candycrush:latest
         env:
           DOCKER_CLI_ACI: 1
+  deploy:
+    needs: build-analyze-scan
+    runs-on: self-hosted # Use your self-hosted runner label here
+    steps:
+      - name: Pull the Docker image
+        run: docker pull vijay24794/candycrush:latest
+      - name: Trivy image scan
+        run: trivy image vijay24794/candycrush:latest # Add Trivy scan command here
+      - name: Update kubeconfig
+        run: aws eks --region us-east-1 update-kubeconfig --name k8s
+      - name: Deploy to EKS
+        run: kubectl apply -f deployment-service.yml
